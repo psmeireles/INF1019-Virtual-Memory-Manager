@@ -1,12 +1,17 @@
 typedef struct PageFrame{
-    int index;
     int count;
-    Access a;
+    Page a;
 } PageFrame;
 
-typedef struct Access{
+typedef struct Page{
+    int index;
+    // The atributes below refer to the current access to the page
     int proc_number;
-    int page_index;
     int offset;
     char type; // 'r' or 'w'
 } Access;
+
+typedef struct PageTableElement{
+    Page page;
+    PageFrame frame;
+} PageTableElement;
