@@ -9,7 +9,7 @@ typedef struct Page{
     int proc_number;
     int offset;
     char type; // 'r' or 'w'
-} Access;
+} Page;
 
 typedef struct PageTableElement{
     Page page;
