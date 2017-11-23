@@ -31,23 +31,32 @@ PageFrame* createPageFrames(){
 PageTableElement* createPageTable(int pnumber){
 
     int i;
+    
+    printf("4\n");
     seg[pnumber] = shmget(IPC_PRIVATE, SIZE*sizeof(PageTableElement), IPC_CREAT | IPC_EXCL | S_IRWXU);	// Page Table
+    printf("5\n");
     table[pnumber] = (PageTableElement *) shmat(seg[pnumber], 0, 0);
+	printf("6\n");
         
     if(requests == NULL){
     	requests = queue_create();
     }
+    
+    printf("7\n");
 
     // Initialize table
     for(i = 0; i < SIZE; i++){
+    	Page *pg = (Page *) malloc(sizeof(Page));
+             
+		pg->index = i;
+        pg->proc_number = pnumber;
+        pg->offset = NULL;
+        pg->type = NULL;
+        pg->bitM = 0;
+        
         table[pnumber][i].frame = NULL;
-        table[pnumber][i].page->index = i;
-        table[pnumber][i].page->proc_number = pnumber;
-        table[pnumber][i].page->offset = NULL;
-        table[pnumber][i].page->type = NULL;
-        table[pnumber][i].page->bitM = 0;
+        table[pnumber][i].page = pg; 
     }
-
     return table[pnumber];
 }
 

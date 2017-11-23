@@ -24,11 +24,13 @@ int main(){
 
 	pf = createPageFrames();
 
+	for(i = 0; i < 256; i++)
+		printf("%d\n", pf[i].index);
+
 	// Initializing Page Tables
     for(i = 0; i < 4; i++){
         table[i] = createPageTable(i);
     }
-    
 
     if((pidp[1] = fork()) == 0){ // User Process 1
         FILE *simulador;
