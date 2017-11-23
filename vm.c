@@ -2,18 +2,23 @@
 #include"vm.h"
 #include<sys/shm.h>
 #include<sys/stat.h>
-#include<math.h>
+#include"queue.h"
 
 #define SIZE 65536
 
 int seg[4];
 PageTableElement *table[4];
+Queue requests;
 
 PageTableElement* createPageTable(int pnumber){
 
     int i;
-    seg[pnumber] = shmget(IPC_PRIVATE, SIZE*sizeof(PageTableElement), IPC_CREAT | IPC_EXCL | S_IRWXU);
+    seg[pnumber] = shmget(IPC_PRIVATE, SIZE*sizeof(PageTableElement), IPC_CREAT | IPC_EXCL | S_IRWXU);	// Page Table
     table[pnumber] = (PageTableElement *) shmat(seg[pnumber], 0, 0);
+        
+    if(requests == NULL){
+    	requests = queue_create();
+    }
 
     // Initialize table
     for(i = 0; i < SIZE; i++){
@@ -33,29 +38,26 @@ PageTableElement* getPageTable(int pnumber){
 
 void trans(int pnumber, unsigned int i, unsigned int o, char rw){
 
-    Page* pg;
-
-    int segmento;
-    Page *pagina;
-
-    segmento = shmget(2220, sizeof(Page), IPC_CREAT | IPC_EXCL | S_IRWXU);
-    pagina = (Page*)shmat(segmento, 0, 0);
-
-    pg->index = i;
-    pg->proc_number = pnumber;
-    pg->offset = o;
-    pg->type = rw;
-
-    *pagina = *pg;
-
     if(table[pnumber][i].frame != NULL){
-        printf("P%d, %x, %c", pnumber, table[pnumber][i].frame.index*pow(2, 16)+o, rw);
+        printf("P%d, %x%x, %c", pnumber, table[pnumber][i].frame.index, o, rw);
     }
     else{
+        Page *pg = (Page *) malloc(sizeof(Page));
+        
+	    pg->index = i;
+	    pg->proc_number = pnumber;
+	    pg->offset = o;
+	    pg->type = rw;
+	    
+    	queue_push(requests, pg);	
         kill(getppid(), SIGUSR1);   // Ask MM for Page Frame
         pause();                    // Waits until MM sets a Page Frame to current page
-        printf("P%d, %x, %c", pnumber, table[pnumber][i].frame.index*pow(2, 16)+o, rw);
+        printf("P%d, %x%x, %c", pnumber, table[pnumber][i].frame.index, o, rw);
     }
+}
+
+Page * getCurrentRequest(){
+	return queue_pop(results);	
 }
 
 
