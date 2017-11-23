@@ -12,14 +12,14 @@ struct queue{
 };
 
 Queue * queue_create(){
-	Queue *f;
-	f = (Queue *) malloc(sizeof(Queue));
-	if(f == NULL){
+	Queue *q;
+	q = (Queue *) malloc(sizeof(Queue));
+	if(q == NULL){
 		printf("Lack of memory.\n");
 		exit(1);
 	}
     q->first = NULL;
-	return f;
+	return q;
 }
 
 void queue_push(Queue *q, void* obj){
@@ -65,5 +65,5 @@ void queue_free(Queue *q){
 		p = aux->next;
 		free(aux);
 	}
-	free(f);
+	free(q);
 }
