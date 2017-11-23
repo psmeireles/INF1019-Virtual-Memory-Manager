@@ -1,22 +1,28 @@
-#include"definitions.h"
-#include"vm.h"
+#include<stdio.h>
+#include<stdlib.h>
+#include<signal.h>
 #include<sys/shm.h>
 #include<sys/stat.h>
+#include<unistd.h>
 #include"queue.h"
+#include"definitions.h"
+#include"vm.h"
 
 #define SIZE 65536
 
 int seg[4];
 PageTableElement *table[4];
-Queue requests;
+Queue *requests;
 PageFrame pf[256];
 
 PageFrame* createPageFrames(){
+
+	int i;
 	// Initializing Page Frames
 	for(i = 0; i < 256; i++){
-		pf[i]->count = 0;
-		pf[i]->index = i;
-		pf[i]->page = NULL;	
+		pf[i].count = 0;
+		pf[i].index = i;
+		pf[i].page = NULL;	
 	} 
 	
 	return pf;
@@ -79,7 +85,6 @@ void clearShm(){
 	
 	for(i = 0; i < 4; i++){
 	    shmctl(seg[i], IPC_RMID, 0);
-	    shmctl(table[i], IPC_RMID, 0);
     }
     queue_free(requests);
 }

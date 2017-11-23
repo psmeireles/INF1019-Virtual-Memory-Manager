@@ -1,6 +1,8 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<unistd.h>
+#include<signal.h>
+#include<sys/types.h>
 #include<sys/wait.h>
 #include<sys/stat.h>
 #include<sys/shm.h>
@@ -15,12 +17,12 @@ void quitHandler(int sinal);
 
 PageTableElement *table[4];
 PageFrame *pf;
+pid_t pidp[4];
 
 int main(){
-    pid_t pidp[4];
     int i;
 
-	pf = createPageFrame();
+	pf = createPageFrames();
 
 	// Initializing Page Tables
     for(i = 0; i < 4; i++){
@@ -169,7 +171,7 @@ void pageFaultHandler(int signal){
 	pf[newFrameIndex].count = 1;
 	pf[newFrameIndex].page = pg;
 
-    table[pg->proc_number][pg->index]->frame = pf[newFrameIndex];
+    table[pg->proc_number][pg->index].frame = &pf[newFrameIndex];
 
     kill(pidp[loserProcess], SIGUSR2);
 

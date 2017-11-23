@@ -10,7 +10,7 @@ typedef struct page{
 typedef struct pageFrame{
     int count;
     int index;
-    Page *a;
+    Page *page;
 } PageFrame;
 
 typedef struct pageTableElement{
