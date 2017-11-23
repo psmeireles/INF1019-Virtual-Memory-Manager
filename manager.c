@@ -7,17 +7,22 @@
 #include"definitions.h"
 #include"vm.h"
 
-int LFU(PageFrame *pf);
+#define EVER ;;
+
+int LFU();
 void pageFaultHandler(int signal);
 void quitHandler(int sinal);
 
 PageTableElement *table[4];
-PageFrame pf[256];
+PageFrame *pf;
 
 int main(){
     pid_t pidp[4];
     int i;
 
+	pf = createPageFrame();
+
+	// Initializing Page Tables
     for(i = 0; i < 4; i++){
         table[i] = createPageTable(i);
     }
@@ -40,8 +45,8 @@ int main(){
 
         while(fscanf(simulador, "%x %c", &addr, &rw) > 0){
             unsigned int i = addr >> 16, o = addr - (i << 16);
-            table[i].page.offset = o;
-            table[i].page.type = rw;
+            table[i].page->offset = o;
+            table[i].page->type = rw;
 
             trans(1, i, o, rw);
         }
@@ -63,8 +68,8 @@ int main(){
 
         while(fscanf(matriz, "%x %c", &addr, &rw) > 0){
             unsigned int i = addr >> 16, o = addr - (i << 16);
-            table[i].page.offset = o;
-            table[i].page.type = rw;
+            table[i].page->offset = o;
+            table[i].page->type = rw;
 
             trans(2, i, o, rw);
         }
@@ -85,8 +90,8 @@ int main(){
 
         while(fscanf(compressor, "%x %c", &addr, &rw) > 0){
             unsigned int i = addr >> 16, o = addr - (i << 16);
-            table[i].page.offset = o;
-            table[i].page.type = rw;
+            table[i].page->offset = o;
+            table[i].page->type = rw;
 
             trans(3, i, o, rw);
         }
@@ -107,8 +112,8 @@ int main(){
 
         while(fscanf(compilador, "%x %c", &addr, &rw) > 0){
             unsigned int i = addr >> 16, o = addr - (i << 16);
-            table[i].page.offset = o;
-            table[i].page.type = rw;
+            table[i].page->offset = o;
+            table[i].page->type = rw;
 
             trans(4, i, o, rw);
         }
@@ -116,12 +121,9 @@ int main(){
     else{   // Memory Manager
 
         signal(SIGUSR1, pageFaultHandler);
-
-        // Initializing Page Frames
-        for(i = 0; i < 256; i++){
-            pf[i].count = 0;
-            pf[i].index = i;
-            pf[i].page = NULL;
+        
+        for(EVER){
+        	pause();
         }
     }
 }
@@ -139,6 +141,11 @@ int LFU(){
             minCount = pf[i].count;
             minFrame = i;
         }
+        else if(pf[i].count == minCount){
+        	if(pf[i].page->bitM < pf[minFrame].page->bitM){
+        		minFrame = i;
+        	}
+        }
     }
 
     return minFrame;
@@ -146,42 +153,31 @@ int LFU(){
 
 void pageFaultHandler(int signal){
 
-    int segmento, newFrameIndex, loserProcess;
-    Page *pg, *newPage = (Page *) malloc (sizeof(Page));
+    int newFrameIndex, loserProcess, time;
+    Page *pg;
+	
+	pg = getCurrentRequest();
 
-    segmento = shmget(2220, sizeof(Page), IPC_CREAT | S_IRWXU);
-    pg = (Page*)shmat(segmento, 0, 0);
-
-    newPage->index = pg->index;
-    newPage->proc_number = pg->proc_number;
-    newPage->offset = pg->offset;
-    newPage->type = pg->type;
-
-    kill(pidp[newPage->proc_number] ,SIGSTOP);
+    kill(pidp[pg->proc_number], SIGSTOP);
 
     newFrameIndex = LFU();
+	
+    loserProcess = pf[newFrameIndex].page->proc_number;
 
-    loserProcess = pf[newFrameIndex].page.proc_number;
+	pf[newFrameIndex].page->bitM = 1;
+	
+	pf[newFrameIndex].count = 1;
+	pf[newFrameIndex].page = pg;
 
-    pf[newFrameIndex].count = pf[newFrameIndex].count + 1;
-    pf[newFrameIndex].page = newPage;
-
-    table[newPage->proc_number][newPage->index].frame = pf[newFrameIndex];
+    table[pg->proc_number][pg->index]->frame = pf[newFrameIndex];
 
     kill(pidp[loserProcess], SIGUSR2);
 
-    kill(pidp[newPage->proc_number] ,SIGCONT);
+    kill(pidp[pg->proc_number] ,SIGCONT);
 }
 
-void quitHandler(int sinal)
-{
-    int segmento;
-    int i;
-
-    segmento = shmget(2220, 0, S_IRWXU);
-    shmctl(segmento, IPC_RMID, 0);
-
-
+void quitHandler(int sinal){
+	clearShm();
     printf("\nTerminando...\n");
     exit (0);
 }
