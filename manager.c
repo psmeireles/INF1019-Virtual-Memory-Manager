@@ -32,14 +32,14 @@ int main(){
         table[i] = createPageTable(i);
     }
 
-    if((pidp[1] = fork()) == 0){ // User Process 1
+    if((pidp[0] = fork()) == 0){ // User Process 1
         FILE *simulador;
         unsigned addr;
         char rw;
         PageTableElement *table;
-        
-        table = getPageTable(1);
-
+        sleep(3);
+        table = getPageTable(0);
+		printf("\nEnter process 1\n");
         
         simulador = fopen("Logs/simulador.log", "r");
         if(simulador == NULL){
@@ -52,17 +52,19 @@ int main(){
             table[i].page->offset = o;
             table[i].page->type = rw;
 
-            trans(1, i, o, rw);
+            printf("\ntrans call process 1\n");
+            trans(0, i, o, rw);
         }
         
     }
-    else if((pidp[2] = fork()) == 0){ // User Process 2
+    else if((pidp[1] = fork()) == 0){ // User Process 2
         FILE *matriz;
         unsigned addr;
         char rw;
         PageTableElement *table;
-        
-        table = getPageTable(2);
+        sleep(3);
+        table = getPageTable(1);
+        printf("\nEnter process 2\n");
         
         matriz = fopen("Logs/matriz.log", "r");
         if(matriz == NULL){
@@ -75,16 +77,18 @@ int main(){
             table[i].page->offset = o;
             table[i].page->type = rw;
 
-            trans(2, i, o, rw);
+            printf("\ntrans call process 2\n");
+            trans(1, i, o, rw);
         }
     }
-    else if((pidp[3] = fork()) == 0){ // User Process 3
+    else if((pidp[2] = fork()) == 0){ // User Process 3
         FILE *compressor;
         unsigned addr;
         char rw;
         PageTableElement *table;
-        
-        table = getPageTable(3);
+        sleep(3);
+        table = getPageTable(2);
+        printf("\nEnter process 3\n");
         
         compressor = fopen("Logs/compressor.log", "r");
         if(compressor == NULL){
@@ -97,33 +101,38 @@ int main(){
             table[i].page->offset = o;
             table[i].page->type = rw;
 
-            trans(3, i, o, rw);
+            printf("\ntrans call process 3\n");
+            trans(2, i, o, rw);
         }
     }
-    else if((pidp[4] = fork()) == 0){ // User Process 4
+    else if((pidp[3] = fork()) == 0){ // User Process 4
         FILE *compilador;
         unsigned addr;
         char rw;
         PageTableElement *table;
+
+        sleep(3);
         
-        table = getPageTable(4);
+        table = getPageTable(3);
+        printf("\nEnter process 4\n");
         
         compilador = fopen("Logs/compilador.log", "r");
         if(compilador == NULL){
             printf("Error when opening file compilador.log\n");
             exit(1);
         }
-
+  
         while(fscanf(compilador, "%x %c", &addr, &rw) > 0){
             unsigned int i = addr >> 16, o = addr - (i << 16);
             table[i].page->offset = o;
             table[i].page->type = rw;
 
-            trans(4, i, o, rw);
+            printf("\ntrans call process 4\n");
+            trans(3, i, o, rw);
         }
     }
     else{   // Memory Manager
-
+    	printf("\nEnter memory manager\n");
         signal(SIGUSR1, pageFaultHandler);
         
         for(EVER){
@@ -157,10 +166,14 @@ int LFU(){
 
 void pageFaultHandler(int signal){
 
-    int newFrameIndex, loserProcess, time;
+	printf("\naaaaacccccc\n");
+
+    int newFrameIndex, loserProcess;
     Page *pg;
 	
-	pg = getCurrentRequest();
+	pg = getCurrentRequest(); //Possivel local de erro!!!!!!!!!!!
+
+	printf("\nEnter Handler - %d\n", pg->proc_number);
 
     kill(pidp[pg->proc_number], SIGSTOP);
 
