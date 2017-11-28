@@ -4,7 +4,6 @@ typedef struct page{
     int proc_number;
     int offset;
     char type; // 'r' or 'w'
-    int bitM;
 } Page;
 
 typedef struct pageFrame{

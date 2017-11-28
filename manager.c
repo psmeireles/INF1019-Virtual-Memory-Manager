@@ -25,9 +25,6 @@ int main(){
     int i;
 
 	createPageFrames(pf);
-	for(i = 0; i <= 300; i++)
-		printf("\npf[%d]->count - %d\n", i, pf[i].count);
-//	pf[0].count = 0;
 
 	for(i = 0; i < 256; i++)
 		printf("%d\n", pf[i].index);
@@ -55,7 +52,7 @@ int main(){
         }
 
         while(fscanf(simulador, "%x %c", &addr, &rw) > 0){
-            unsigned int i = addr >> 16, o = addr - (i << 16);
+            int i = addr >> 16, o = addr - (i << 16);
             table[i].page->offset = o;
             table[i].page->type = rw;
 
@@ -80,7 +77,7 @@ int main(){
         }
 
         while(fscanf(matriz, "%x %c", &addr, &rw) > 0){
-            unsigned int i = addr >> 16, o = addr - (i << 16);
+            int i = addr >> 16, o = addr - (i << 16);
             table[i].page->offset = o;
             table[i].page->type = rw;
 
@@ -104,7 +101,7 @@ int main(){
         }
 
         while(fscanf(compressor, "%x %c", &addr, &rw) > 0){
-            unsigned int i = addr >> 16, o = addr - (i << 16);
+            int i = addr >> 16, o = addr - (i << 16);
             table[i].page->offset = o;
             table[i].page->type = rw;
 
@@ -128,7 +125,7 @@ int main(){
         }
   
         while(fscanf(compilador, "%x %c", &addr, &rw) > 0){
-            unsigned int i = addr >> 16, o = addr - (i << 16);
+            int i = addr >> 16, o = addr - (i << 16);
             table[i].page->offset = o;
             table[i].page->type = rw;
 
@@ -141,7 +138,7 @@ int main(){
         signal(SIGUSR1, pageFaultHandler);
         
         for(EVER){
-        	pause();
+        	sleep(1);
         }
     }
 }
@@ -179,20 +176,16 @@ void pageFaultHandler(int signal){
 
 	printf("\nEnter Handler - %d\n", pg->proc_number+1);
 
-    kill(pidp[pg->proc_number], SIGSTOP);
+    //kill(pidp[pg->proc_number], SIGSTOP);
 printf("\nzzzzzzz\n");
     newFrameIndex = LFU();
-printf("\nyyyyyyyy\n");	printf("\n%d\n", newFrameIndex);
-    loserProcess = pf[newFrameIndex].page->proc_number;
-printf("\nxxxxxxxx\n");
+printf("\nyyyyyyyy\n");
 	pf[newFrameIndex].count = 1;
 	pf[newFrameIndex].page = pg;
 printf("\nwwwwww\n");
     table[pg->proc_number][pg->index].frame = &pf[newFrameIndex];
 printf("\nvvvvvvv\n");
-    kill(pidp[loserProcess], SIGUSR2);
-printf("\nuuuuuuuu\n");
-    kill(pidp[pg->proc_number] ,SIGCONT);
+    kill(pidp[pg->proc_number], SIGCONT);
 printf("\nttttttt\n");    
 }
 
