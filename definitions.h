@@ -17,3 +17,9 @@ typedef struct pageTableElement{
     Page *page;
     PageFrame *frame;
 } PageTableElement;
+
+typedef struct queueVector{
+    Page pages[4];
+    int first;
+    int empty;
+} QueueVector;

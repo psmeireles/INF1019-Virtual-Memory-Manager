@@ -16,13 +16,18 @@ void pageFaultHandler(int signal);
 void quitHandler(int sinal);
 
 PageTableElement *table[4];
-PageFrame *pf;
+PageFrame pf[256];
 pid_t pidp[4];
+
+QueueVector *qv;
 
 int main(){
     int i;
 
-	pf = createPageFrames();
+	createPageFrames(pf);
+	for(i = 0; i <= 300; i++)
+		printf("\npf[%d]->count - %d\n", i, pf[i].count);
+//	pf[0].count = 0;
 
 	for(i = 0; i < 256; i++)
 		printf("%d\n", pf[i].index);
@@ -31,13 +36,15 @@ int main(){
     for(i = 0; i < 4; i++){
         table[i] = createPageTable(i);
     }
+    
+    qv = createQueueVector();
 
     if((pidp[0] = fork()) == 0){ // User Process 1
         FILE *simulador;
         unsigned addr;
         char rw;
         PageTableElement *table;
-        sleep(3);
+        
         table = getPageTable(0);
 		printf("\nEnter process 1\n");
         
@@ -62,7 +69,7 @@ int main(){
         unsigned addr;
         char rw;
         PageTableElement *table;
-        sleep(3);
+
         table = getPageTable(1);
         printf("\nEnter process 2\n");
         
@@ -86,7 +93,7 @@ int main(){
         unsigned addr;
         char rw;
         PageTableElement *table;
-        sleep(3);
+
         table = getPageTable(2);
         printf("\nEnter process 3\n");
         
@@ -111,8 +118,6 @@ int main(){
         char rw;
         PageTableElement *table;
 
-        sleep(3);
-        
         table = getPageTable(3);
         printf("\nEnter process 4\n");
         
@@ -149,15 +154,12 @@ int LFU(){
     minCount = pf[0].count;
     minFrame = 0;
     for( i = 1; i<256; i++ ){
-
+        if(minCount == 0){
+    		return minFrame;
+    	}
         if(pf[i].count < minCount){
             minCount = pf[i].count;
             minFrame = i;
-        }
-        else if(pf[i].count == minCount){
-        	if(pf[i].page->bitM < pf[minFrame].page->bitM){
-        		minFrame = i;
-        	}
         }
     }
 
@@ -172,25 +174,26 @@ void pageFaultHandler(int signal){
     Page *pg;
 	
 	pg = getCurrentRequest(); //Possivel local de erro!!!!!!!!!!!
+	
+	qv->first = (qv->first + 1) % 4;
 
-	printf("\nEnter Handler - %d\n", pg->proc_number);
+	printf("\nEnter Handler - %d\n", pg->proc_number+1);
 
     kill(pidp[pg->proc_number], SIGSTOP);
-
+printf("\nzzzzzzz\n");
     newFrameIndex = LFU();
-	
+printf("\nyyyyyyyy\n");	printf("\n%d\n", newFrameIndex);
     loserProcess = pf[newFrameIndex].page->proc_number;
-
-	pf[newFrameIndex].page->bitM = 1;
-	
+printf("\nxxxxxxxx\n");
 	pf[newFrameIndex].count = 1;
 	pf[newFrameIndex].page = pg;
-
+printf("\nwwwwww\n");
     table[pg->proc_number][pg->index].frame = &pf[newFrameIndex];
-
+printf("\nvvvvvvv\n");
     kill(pidp[loserProcess], SIGUSR2);
-
+printf("\nuuuuuuuu\n");
     kill(pidp[pg->proc_number] ,SIGCONT);
+printf("\nttttttt\n");    
 }
 
 void quitHandler(int sinal){

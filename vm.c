@@ -4,27 +4,26 @@
 #include<sys/shm.h>
 #include<sys/stat.h>
 #include<unistd.h>
-#include"queue.h"
 #include"definitions.h"
 #include"vm.h"
 
 #define SIZE 65536
 
 int seg[4];
+int segQueue;
 PageTableElement *table[4];
-Queue *requests;
 PageFrame pf[256];
+QueueVector *qv;
 
-PageFrame* createPageFrames(){
+void createPageFrames(PageFrame *pf){
 
 	int i;
 	// Initializing Page Frames
 	for(i = 0; i < 256; i++){
 		pf[i].count = 0;
+		//printf("%d\n", pf[i].count);
 		pf[i].index = i;
-		pf[i].page = NULL;	
 	} 
-	
 	return pf;
 }
 
@@ -35,10 +34,6 @@ PageTableElement* createPageTable(int pnumber){
     seg[pnumber] = shmget(IPC_PRIVATE, SIZE*sizeof(PageTableElement), IPC_CREAT | IPC_EXCL | S_IRWXU);	// Page Table
     table[pnumber] = (PageTableElement *) shmat(seg[pnumber], 0, 0);
       
-    if(requests == NULL){
-    	requests = queue_create();
-    }
-    
     table[pnumber] = (PageTableElement *) malloc(65536*sizeof(PageTableElement));
 
     // Initialize table
@@ -50,13 +45,25 @@ PageTableElement* createPageTable(int pnumber){
         pg->proc_number = pnumber;
         pg->offset = NULL;
         pg->type = NULL;
-        pg->bitM = 0;
         
         table[pnumber][i].frame = NULL;
         table[pnumber][i].page = pg; 
     }
     printf("\nEnd createPageTable process %d\n", pnumber+1);
     return table[pnumber];
+}
+
+QueueVector* createQueueVector(){
+
+	int i;
+
+	segQueue = shmget(IPC_PRIVATE, sizeof(QueueVector), IPC_CREAT | IPC_EXCL | S_IRWXU);	// QueueVector
+    qv = (QueueVector *) shmat(segQueue, 0, 0);
+    
+    qv->first = 0;
+    qv->empty = 0;
+    
+    return qv;
 }
 
 PageTableElement* getPageTable(int pnumber){
@@ -72,14 +79,19 @@ void trans(int pnumber, unsigned int i, unsigned int o, char rw){
 		table[pnumber][i].frame->count++;
     }
     else{
-        Page *pg = (Page *) malloc(sizeof(Page));
+//        Page *pg = (Page *) malloc(sizeof(Page));
         
-	    pg->index = i;
-	    pg->proc_number = pnumber;
-	    pg->offset = o;
-	    pg->type = rw;
+	    //pg->index = i;
+//	    pg->proc_number = pnumber;
+//	    pg->offset = o;
+//	    pg->type = rw;
 	    
-    	queue_push(requests, pg);
+    	qv->pages[qv->empty].index = i;
+    	qv->pages[qv->empty].proc_number = pnumber;
+    	qv->pages[qv->empty].offset = o;
+    	qv->pages[qv->empty].type = rw;
+    	
+		qv->empty = (qv->empty + 1) % 4;
         printf("\nsend SIGUSR1 process %d\n", pnumber+1);	
         kill(getppid(), SIGUSR1);   // Ask MM for Page Frame
         pause();                    // Waits until MM sets a Page Frame to current page
@@ -89,7 +101,7 @@ void trans(int pnumber, unsigned int i, unsigned int o, char rw){
 
 Page * getCurrentRequest(){
     printf("\nEnter getCurrentRequest\n");
-	return queue_pop(requests);
+	return &qv->pages[qv->first];
 }
 
 void clearShm(){
@@ -98,7 +110,7 @@ void clearShm(){
 	for(i = 0; i < 4; i++){
 	    shmctl(seg[i], IPC_RMID, 0);
     }
-    queue_free(requests);
+    shmctl(segQueue, IPC_RMID, 0);
 }
 
 
