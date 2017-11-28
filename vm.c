@@ -21,7 +21,6 @@ void createPageFrames(PageFrame *pf){
 	// Initializing Page Frames
 	for(i = 0; i < 256; i++){
 		pf[i].count = 0;
-		//printf("%d\n", pf[i].count);
 		pf[i].index = i;
 	} 
 }
@@ -32,23 +31,15 @@ PageTableElement* createPageTable(int pnumber){
     
     seg[pnumber] = shmget(IPC_PRIVATE, SIZE*sizeof(PageTableElement), IPC_CREAT | IPC_EXCL | S_IRWXU);	// Page Table
     table[pnumber] = (PageTableElement *) shmat(seg[pnumber], 0, 0);
-      
-    //table[pnumber] = (PageTableElement *) malloc(65536*sizeof(PageTableElement));
 
     // Initialize table
-    for(i = 0; i < SIZE; i++){
-
-    	Page *pg = (Page *) malloc(sizeof(Page));
-             
-		pg->index = i;
-        pg->proc_number = pnumber;
-        pg->offset = NULL;
-        pg->type = NULL;
-        
-        table[pnumber][i].frame = NULL;
-        table[pnumber][i].page = pg; 
+    for(i = 0; i < SIZE; i++){        
+        table[pnumber][i].page.index = i;
+        table[pnumber][i].page.proc_number = pnumber;
+        table[pnumber][i].frame.count = -1; 
+        table[pnumber][i].frame.index = -1;
     }
-    printf("\nEnd createPageTable process %d\n", pnumber+1);
+    //printf("\nEnd createPageTable process %d\n", pnumber+1);
     return table[pnumber];
 }
 
@@ -71,46 +62,28 @@ PageTableElement* getPageTable(int pnumber){
 
 void trans(int pnumber, int i, unsigned int o, char rw){
 
-    printf("\nEnter trans process %d\n", pnumber+1);
+    //printf("\nEnter trans process %d\n", pnumber+1);
 
-    if(table[pnumber][i].frame != NULL){
-        printf("P%d, %x%x, %c", pnumber, table[pnumber][i].frame->index, o, rw);
-		table[pnumber][i].frame->count++;
+    if(table[pnumber][i].frame.count != -1){
+        printf("P%d, %x%x, %c\n", pnumber + 1, table[pnumber][i].frame.index, o, rw);
+		table[pnumber][i].frame.count++;
     }
-    else{
-//        Page *pg = (Page *) malloc(sizeof(Page));
-        
-	    //pg->index = i;
-//	    pg->proc_number = pnumber;
-//	    pg->offset = o;
-//	    pg->type = rw;
-	    
+    else{	    
     	qv->pages[qv->empty].index = i;
     	qv->pages[qv->empty].proc_number = pnumber;
     	qv->pages[qv->empty].offset = o;
     	qv->pages[qv->empty].type = rw;
     	
 		qv->empty = (qv->empty + 1) % 4;
-        printf("\nsend SIGUSR1 process %d\n", pnumber+1);	
         kill(getppid(), SIGUSR1);   // Ask MM for Page Frame
-        printf("processo %d dormiu\n", pnumber+1);
         sleep(1);                    // Waits until MM sets a Page Frame to current page
-        printf("P%d, ", pnumber+1);
-        printf("%x, ", o);
-        printf("%c\n", rw);
-        
-		printf("i = %d, pnumber = %d\n", i, pnumber);
-
-        printf("%x", table[pnumber][i].frame->index);        
-        printf("processo %d acordou\n", pnumber+1);
-//        printf("P%d, %x%x, %c", pnumber, table[pnumber][i].frame->index, o, rw);
-//        printf("P%d, ", pnumber);
+        printf("P%d, %x%x, %c\n", pnumber + 1, table[pnumber][i].frame.index, o, rw);
     }
 }
 
-Page * getCurrentRequest(){
-    printf("\nEnter getCurrentRequest\n");
-	return &qv->pages[qv->first];
+Page getCurrentRequest(){
+    //printf("\nEnter getCurrentRequest\n");
+	return qv->pages[qv->first];
 }
 
 void clearShm(){

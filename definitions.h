@@ -7,14 +7,14 @@ typedef struct page{
 } Page;
 
 typedef struct pageFrame{
-    int count;
+    int count; 
     int index;
-    Page *page;
+    Page page;
 } PageFrame;
 
 typedef struct pageTableElement{
-    Page *page;
-    PageFrame *frame;
+    Page page;
+    PageFrame frame;
 } PageTableElement;
 
 typedef struct queueVector{

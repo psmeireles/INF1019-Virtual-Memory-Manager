@@ -26,9 +26,6 @@ int main(){
 
 	createPageFrames(pf);
 
-	for(i = 0; i < 256; i++)
-		printf("%d\n", pf[i].index);
-
 	// Initializing Page Tables
     for(i = 0; i < 4; i++){
         table[i] = createPageTable(i);
@@ -43,7 +40,7 @@ int main(){
         PageTableElement *table;
         
         table = getPageTable(0);
-		printf("\nEnter process 1\n");
+		//printf("\nEnter process 1\n");
         
         simulador = fopen("Logs/simulador.log", "r");
         if(simulador == NULL){
@@ -53,10 +50,10 @@ int main(){
 
         while(fscanf(simulador, "%x %c", &addr, &rw) > 0){
             int i = addr >> 16, o = addr - (i << 16);
-            table[i].page->offset = o;
-            table[i].page->type = rw;
+            table[i].page.offset = o;
+            table[i].page.type = rw;
 
-            printf("\ntrans call process 1\n");
+            //printf("\ntrans call process 1\n");
             trans(0, i, o, rw);
         }
         
@@ -68,7 +65,7 @@ int main(){
         PageTableElement *table;
 
         table = getPageTable(1);
-        printf("\nEnter process 2\n");
+        //printf("\nEnter process 2\n");
         
         matriz = fopen("Logs/matriz.log", "r");
         if(matriz == NULL){
@@ -78,10 +75,10 @@ int main(){
 
         while(fscanf(matriz, "%x %c", &addr, &rw) > 0){
             int i = addr >> 16, o = addr - (i << 16);
-            table[i].page->offset = o;
-            table[i].page->type = rw;
+            table[i].page.offset = o;
+            table[i].page.type = rw;
 
-            printf("\ntrans call process 2\n");
+            //printf("\ntrans call process 2\n");
             trans(1, i, o, rw);
         }
     }
@@ -92,7 +89,7 @@ int main(){
         PageTableElement *table;
 
         table = getPageTable(2);
-        printf("\nEnter process 3\n");
+        //printf("\nEnter process 3\n");
         
         compressor = fopen("Logs/compressor.log", "r");
         if(compressor == NULL){
@@ -102,10 +99,10 @@ int main(){
 
         while(fscanf(compressor, "%x %c", &addr, &rw) > 0){
             int i = addr >> 16, o = addr - (i << 16);
-            table[i].page->offset = o;
-            table[i].page->type = rw;
+            table[i].page.offset = o;
+            table[i].page.type = rw;
 
-            printf("\ntrans call process 3\n");
+            //printf("\ntrans call process 3\n");
             trans(2, i, o, rw);
         }
     }
@@ -116,7 +113,7 @@ int main(){
         PageTableElement *table;
 
         table = getPageTable(3);
-        printf("\nEnter process 4\n");
+        //printf("\nEnter process 4\n");
         
         compilador = fopen("Logs/compilador.log", "r");
         if(compilador == NULL){
@@ -126,15 +123,15 @@ int main(){
   
         while(fscanf(compilador, "%x %c", &addr, &rw) > 0){
             int i = addr >> 16, o = addr - (i << 16);
-            table[i].page->offset = o;
-            table[i].page->type = rw;
+            table[i].page.offset = o;
+            table[i].page.type = rw;
 
-            printf("\ntrans call process 4\n");
+            //printf("\ntrans call process 4\n");
             trans(3, i, o, rw);
         }
     }
     else{   // Memory Manager
-    	printf("\nEnter memory manager\n");
+    	//printf("\nEnter memory manager\n");
         signal(SIGUSR1, pageFaultHandler);
         
         for(EVER){
@@ -164,29 +161,21 @@ int LFU(){
 }
 
 void pageFaultHandler(int signal){
-
-	printf("\naaaaacccccc\n");
-
     int newFrameIndex, loserProcess;
-    Page *pg;
+    Page pg;
 	
-	pg = getCurrentRequest(); //Possivel local de erro!!!!!!!!!!!
+	pg = getCurrentRequest();
 	
 	qv->first = (qv->first + 1) % 4;
 
-	printf("\nEnter Handler - %d\n", pg->proc_number+1);
+	//printf("\nEnter Handler - %d\n", pg.proc_number+1);
 
-    //kill(pidp[pg->proc_number], SIGSTOP);
-printf("\nzzzzzzz\n");
+    //kill(pidp[pg.proc_number], SIGSTOP);
     newFrameIndex = LFU();
-printf("\nyyyyyyyy\n");
 	pf[newFrameIndex].count = 1;
 	pf[newFrameIndex].page = pg;
-printf("\nwwwwww\n");
-    table[pg->proc_number][pg->index].frame = &pf[newFrameIndex];
-printf("\nvvvvvvv\n");
-    kill(pidp[pg->proc_number], SIGCONT);
-printf("\nttttttt\n");    
+    table[pg.proc_number][pg.index].frame = pf[newFrameIndex];
+    kill(pidp[pg.proc_number], SIGCONT);
 }
 
 void quitHandler(int sinal){
