@@ -44,7 +44,6 @@ PageTableElement* createPageTable(int pnumber){
         table[pnumber][i].frame.count = -1; 
         table[pnumber][i].frame.index = -1;
     }
-    //printf("\nEnd createPageTable process %d\n", pnumber+1);
     return table[pnumber];
 }
 
@@ -70,37 +69,33 @@ PageTableElement* getPageTable(int pnumber){
 }
 
 void trans(int pnumber, int i, unsigned int o, char rw){
-
-    //printf("\nEnter trans process %d\n", pnumber+1);
-
+    
+    down(semaphore);
     if(table[pnumber][i].frame.index > 0){
         printf("P%d, %04x%04x, %c, count %d\n", pnumber + 1, table[pnumber][i].frame.index, o, rw, table[pnumber][i].frame.count); 
 		table[pnumber][i].frame.count++;
     }
     else{
     
-    	down(semaphore);
-    	printf("\nP%d mexendo no empty\n", pnumber+1);
+    	
+    	
     	qv->pages[qv->empty].index = i;
     	qv->pages[qv->empty].proc_number = pnumber;
     	qv->pages[qv->empty].offset = o;
     	qv->pages[qv->empty].type = rw;
     	
 		qv->empty = (qv->empty + 1) % 4;
-		printf("\nP%d terminou de mexer no empty\n", pnumber+1);
-		up(semaphore);
 		
         kill(getppid(), SIGUSR1);   // Ask MM for Page Frame
-        sleep(1);                    // Waits until MM sets a Page Frame to current page
-        //kill(getppid(), SIGSTOP);
+        usleep(1000);                    // Waits until MM sets a Page Frame to current page
         
         printf("P%d, %04x%04x, %c, count %d\n", pnumber + 1, table[pnumber][i].frame.index, o, rw, table[pnumber][i].frame.count); 
-        //kill(getppid(), SIGCONT);
     }
+    up(semaphore);
+
 }
 
 Page getCurrentRequest(){
-    //printf("\nEnter getCurrentRequest\n");
 	return qv->pages[qv->first];
 }
 
