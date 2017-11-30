@@ -133,6 +133,8 @@ int main(){
     else{   // Memory Manager
     	//printf("\nEnter memory manager\n");
         signal(SIGUSR1, pageFaultHandler);
+        signal(SIGQUIT, quitHandler);
+        signal(SIGINT, quitHandler);
         
         for(EVER){
         	sleep(1);
@@ -170,11 +172,26 @@ void pageFaultHandler(int signal){
 
 	//printf("\nEnter Handler - %d\n", pg.proc_number+1);
 
-    //kill(pidp[pg.proc_number], SIGSTOP);
+	//printf("\nSigstop index %04x offset %04x\n", pg.index, pg.offset);
+    kill(pidp[pg.proc_number], SIGSTOP);
     newFrameIndex = LFU();
+    //printf("\nLFU\n");
+    table[pf[newFrameIndex].page.proc_number][pf[newFrameIndex].page.index].frame.count = -1;
+    table[pf[newFrameIndex].page.proc_number][pf[newFrameIndex].page.index].frame.index = -1;
+    //printf("\nAtualizou page table \n");
 	pf[newFrameIndex].count = 1;
-	pf[newFrameIndex].page = pg;
-    table[pg.proc_number][pg.index].frame = pf[newFrameIndex];
+	pf[newFrameIndex].page.index = pg.index;
+	pf[newFrameIndex].page.proc_number = pg.proc_number;
+	pf[newFrameIndex].page.offset = pg.offset;
+	pf[newFrameIndex].page.type = pg.type;
+	//printf("\nAtualizou Page frame\n");
+    table[pg.proc_number][pg.index].frame.count = pf[newFrameIndex].count;
+    table[pg.proc_number][pg.index].frame.index = pf[newFrameIndex].index;
+    table[pg.proc_number][pg.index].frame.page.index = pf[newFrameIndex].page.index;
+    table[pg.proc_number][pg.index].frame.page.proc_number = pf[newFrameIndex].page.proc_number;
+    table[pg.proc_number][pg.index].frame.page.offset = pf[newFrameIndex].page.offset;
+    table[pg.proc_number][pg.index].frame.page.type = pf[newFrameIndex].page.type;
+    //printf("\nAlocado index %04x offset %04x na frame %04x\n", table[pg.proc_number][pg.index].frame.page.index, table[pg.proc_number][pg.index].frame.page.offset, table[pg.proc_number][pg.index].frame.index);
     kill(pidp[pg.proc_number], SIGCONT);
 }
 
