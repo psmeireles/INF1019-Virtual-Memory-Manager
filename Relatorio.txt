@@ -1,0 +1,16 @@
+PUC-Rio	- Trabalho de Sistemas de Computação (INF1019)
+Professor: Markus Endler
+Monitora: Jéssica Almeida
+Alunos:
+Pedro Sousa Meireles	-	1510962
+Julio Neuman Kessel 	-	1511745
+
+Modo de usar:
+	Abra um terminal e navegue até o diretório onde os arquivos referentes ao programa foram salvos. Após isso digite "gcc -o manager manager.c vm.c semaphore.c" e então "./manager".
+	Para encerrar a execução do programa digite o comando ctrl+c.
+
+Funcionamento do programa:
+	Os arquivos vm.c e semaphore.c funcionam simplismente como bibliotecas que serão utilizadas pelo manager.
+	Assim que a execução do programa começa é inicializado o vetor de page frames que será compartilhado pelos 4 processos utilizados pelo programa, e tambem são inicializadas 4 page tables, uma para cada processo.
+	Cada processo fica em loop lendo linha a linha dos arquivos contendo os endereços de memoria virtual acessados por cada processo, e a cada iteração eles fazem uma chamada para a função trans do vm.c passando o numero do processo, o indice da pagina, o offset e o tipo de acesso.
+	A função trans então verifica se na page table do processo se essa pagina ja esta relacionada a um page frame. Caso ja esteja, o contador de numeros de acesso ao frame dessa pagina é incrementado. Caso não esteja, é enviado um sinal de volta ao gerenciador de memoria para que ele utilize o algoritmo LFU para decidir em qual page frame essa pagina vai ser adicionada, e então atualize essa informação tanto no vetor de page frames quanto na page table.
