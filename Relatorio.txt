@@ -13,7 +13,7 @@ Modo de usar:
 Funcionamento do programa:
       Os arquivos vm.c e semaphore.c funcionam simplismente como bibliotecas que serão
    utilizadas pelo manager.
-   Assim que a execução do programa começa é inicializado o vetor de page frames que será
+      Assim que a execução do programa começa é inicializado o vetor de page frames que será
    compartilhado pelos 4 processos utilizados pelo programa, e tambem são inicializadas 4
    page tables, uma para cada processo.
       Cada processo fica em loop lendo linha a linha dos arquivos contendo os endereços de
