@@ -12,22 +12,27 @@
 #define SIZE 65536
 
 
+int segpf;
 int seg[4];
 int segQueue;
 int semaphore;
 PageTableElement *table[4];
-PageFrame pf[256];
+PageFrame *pf;
 QueueVector *qv;
 
 
-void createPageFrames(PageFrame *pf){
+PageFrame * createPageFrames(){
 
 	int i;
+
+    segpf = shmget(IPC_PRIVATE, 256*sizeof(PageFrame), IPC_CREAT | IPC_EXCL | S_IRWXU);	// Page Table
+    pf = (PageFrame *) shmat(segpf, 0, 0);
 	// Initializing Page Frames
 	for(i = 0; i < 256; i++){
 		pf[i].count = 0;
 		pf[i].index = i;
 	} 
+    return pf;
 }
 
 PageTableElement* createPageTable(int pnumber){
@@ -70,15 +75,22 @@ PageTableElement* getPageTable(int pnumber){
 
 void trans(int pnumber, int i, unsigned int o, char rw){
     
-    down(semaphore);
-    if(table[pnumber][i].frame.index > 0){
-        printf("P%d, %04x%04x, %c, count %d\n", pnumber + 1, table[pnumber][i].frame.index, o, rw, table[pnumber][i].frame.count); 
-		table[pnumber][i].frame.count++;
+    int frameindex = table[pnumber][i].frame.index;
+    int count = table[pnumber][i].frame.count;
+
+    if( frameindex >= 0 && count >= 0){
+        table[pnumber][i].frame.count++;
+        pf[table[pnumber][i].frame.index].count++;
+        if(frameindex == -1){
+            printf("TA TUDO ERRADO\n");
+        }
+        
+        printf("P%d, %04x%04x, %c, count %d\n", pnumber + 1, frameindex, o, rw, table[pnumber][i].frame.count-1); 
     }
     else{
     
     	
-    	
+    	down(semaphore);
     	qv->pages[qv->empty].index = i;
     	qv->pages[qv->empty].proc_number = pnumber;
     	qv->pages[qv->empty].offset = o;
@@ -90,8 +102,8 @@ void trans(int pnumber, int i, unsigned int o, char rw){
         usleep(10000);                    // Waits until MM sets a Page Frame to current page
         
         printf("P%d, %04x%04x, %c, count %d\n", pnumber + 1, table[pnumber][i].frame.index, o, rw, table[pnumber][i].frame.count); 
+        up(semaphore);
     }
-    up(semaphore);
 
 }
 

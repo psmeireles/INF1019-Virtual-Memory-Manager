@@ -1,4 +1,4 @@
-void createPageFrames(PageFrame *pf);
+PageFrame * createPageFrames();
 QueueVector* createQueueVector();
 PageTableElement* createPageTable(int pnumber);
 PageTableElement* getPageTable(int pnumber);

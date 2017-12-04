@@ -18,7 +18,7 @@ void quitHandler(int sinal);
 void childHanlder(int sinal);
 
 PageTableElement *table[4];
-PageFrame pf[256];
+PageFrame *pf;
 pid_t pidp[4];
 
 QueueVector *qv;
@@ -27,11 +27,13 @@ int activeProcesses = 4;
 int swapW = 0;
 int pageFaults = 0;
 
+time_t now;
+
 int main(){
     int i;
-    time_t now = time(0);
+    now = time(0);
 
-	createPageFrames(pf);
+	pf = createPageFrames();
 
 	// Initializing Page Tables
     for(i = 0; i < 4; i++){
@@ -183,7 +185,7 @@ void pageFaultHandler(int signal){
 	pf[newFrameIndex].page.proc_number = pg.proc_number;
 	pf[newFrameIndex].page.offset = pg.offset;
 	pf[newFrameIndex].page.type = pg.type;
-    if(pf[newFrameIndex].page.type == 'r'){
+    if(pf[newFrameIndex].page.type == 'W'){
         swapW++;
     }
     table[pg.proc_number][pg.index].frame.count = pf[newFrameIndex].count;
@@ -196,6 +198,14 @@ void pageFaultHandler(int signal){
 }
 
 void quitHandler(int sinal){
+    int i;
+    for(i = 0; i < 256; i++){
+        printf("Frame %d: %d\n", i, pf[i].count);
+    }
+
+    now = time(0) - now;
+    printf("Time: %lu\nPage Faults: %d\nSwap W: %d\n", now, pageFaults, swapW);
+
 	clearShm();
     printf("\nTerminando...\n");
     exit (0);
