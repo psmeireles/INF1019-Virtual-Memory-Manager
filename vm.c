@@ -75,7 +75,6 @@ PageTableElement* getPageTable(int pnumber){
 
 void trans(int pnumber, int i, unsigned int o, char rw){
     
-<<<<<<< HEAD
     int frameindex = table[pnumber][i].frame.index;
     int count = table[pnumber][i].frame.count;
 
