@@ -173,13 +173,19 @@ void pageFaultHandler(int signal){
     int newFrameIndex, loserProcess;
     Page pg;
 
+	//get the next page that is supposed to be handled, according to the queue vector
 	pg = getCurrentRequest();
+	//stop the process that caused a page fault
 	kill(pidp[pg.proc_number], SIGSTOP);
     pageFaults++;
-	qv->first = (qv->first + 1) % 4;    
+    //update value that determines the next page to be handled on the vector
+	qv->first = (qv->first + 1) % 4;
+	//call lfu to detrmine the best page frame to add this page    
     newFrameIndex = LFU();
+    //update the page table of the process that is losing the frame
     table[pf[newFrameIndex].page.proc_number][pf[newFrameIndex].page.index].frame.count = -1;
     table[pf[newFrameIndex].page.proc_number][pf[newFrameIndex].page.index].frame.index = -1;
+    //update the page frame to contain the new page
 	pf[newFrameIndex].count = 1;
 	pf[newFrameIndex].page.index = pg.index;
 	pf[newFrameIndex].page.proc_number = pg.proc_number;
@@ -188,12 +194,14 @@ void pageFaultHandler(int signal){
     if(pf[newFrameIndex].page.type == 'W'){
         swapW++;
     }
+    //upadate the page table of the procces that is putting the new page on the frame
     table[pg.proc_number][pg.index].frame.count = pf[newFrameIndex].count;
     table[pg.proc_number][pg.index].frame.index = pf[newFrameIndex].index;
     table[pg.proc_number][pg.index].frame.page.index = pf[newFrameIndex].page.index;
     table[pg.proc_number][pg.index].frame.page.proc_number = pf[newFrameIndex].page.proc_number;
     table[pg.proc_number][pg.index].frame.page.offset = pf[newFrameIndex].page.offset;
     table[pg.proc_number][pg.index].frame.page.type = pf[newFrameIndex].page.type;
+    //continue the execution os the process that caused the page fault
     kill(pidp[pg.proc_number], SIGCONT);
 }
 

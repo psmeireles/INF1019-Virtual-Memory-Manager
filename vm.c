@@ -75,6 +75,7 @@ PageTableElement* getPageTable(int pnumber){
 
 void trans(int pnumber, int i, unsigned int o, char rw){
     
+<<<<<<< HEAD
     int frameindex = table[pnumber][i].frame.index;
     int count = table[pnumber][i].frame.count;
 
@@ -91,15 +92,18 @@ void trans(int pnumber, int i, unsigned int o, char rw){
     
     	
     	down(semaphore);
+
     	qv->pages[qv->empty].index = i;
     	qv->pages[qv->empty].proc_number = pnumber;
     	qv->pages[qv->empty].offset = o;
     	qv->pages[qv->empty].type = rw;
     	
+    	//update value that determines the next empty place on the vector
 		qv->empty = (qv->empty + 1) % 4;
 		
         kill(getppid(), SIGUSR1);   // Ask MM for Page Frame
         usleep(10000);                    // Waits until MM sets a Page Frame to current page
+        //sleep(1);
         
         printf("P%d, %04x%04x, %c, count %d\n", pnumber + 1, table[pnumber][i].frame.index, o, rw, table[pnumber][i].frame.count); 
         up(semaphore);
@@ -119,5 +123,4 @@ void clearShm(){
     }
     shmctl(segQueue, IPC_RMID, 0);
 }
-
 
