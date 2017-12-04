@@ -70,24 +70,27 @@ PageTableElement* getPageTable(int pnumber){
 
 void trans(int pnumber, int i, unsigned int o, char rw){
     
+    //semaforo necessario para impedir que um processo modifique valores que outro processo esta manipulando ou esta prestes a imprimir na tela
     down(semaphore);
     if(table[pnumber][i].frame.index > 0){
-        printf("P%d, %04x%04x, %c, count %d\n", pnumber + 1, table[pnumber][i].frame.index, o, rw, table[pnumber][i].frame.count); 
+        printf("P%d, %04x%04x, %c, count %d\n", pnumber + 1, table[pnumber][i].frame.index, o, rw, table[pnumber][i].frame.count);
+        //incrementa contador de numeros de acesso a pagina desse frame 
 		table[pnumber][i].frame.count++;
     }
     else{
     
-    	
-    	
+    	//add page to the vector that represents the order in which the pages will be handled
     	qv->pages[qv->empty].index = i;
     	qv->pages[qv->empty].proc_number = pnumber;
     	qv->pages[qv->empty].offset = o;
     	qv->pages[qv->empty].type = rw;
     	
+    	//update value that determines the next empty place on the vector
 		qv->empty = (qv->empty + 1) % 4;
 		
         kill(getppid(), SIGUSR1);   // Ask MM for Page Frame
         usleep(10000);                    // Waits until MM sets a Page Frame to current page
+        //sleep(1);
         
         printf("P%d, %04x%04x, %c, count %d\n", pnumber + 1, table[pnumber][i].frame.index, o, rw, table[pnumber][i].frame.count); 
     }
@@ -107,5 +110,4 @@ void clearShm(){
     }
     shmctl(segQueue, IPC_RMID, 0);
 }
-
 
