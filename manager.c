@@ -6,6 +6,7 @@
 #include<sys/wait.h>
 #include<sys/stat.h>
 #include<sys/shm.h>
+#include<time.h>
 #include"definitions.h"
 #include"vm.h"
 
@@ -14,6 +15,7 @@
 int LFU();
 void pageFaultHandler(int signal);
 void quitHandler(int sinal);
+void childHanlder(int sinal);
 
 PageTableElement *table[4];
 PageFrame pf[256];
@@ -21,8 +23,13 @@ pid_t pidp[4];
 
 QueueVector *qv;
 
+int activeProcesses = 4;
+int swapW = 0;
+int pageFaults = 0;
+
 int main(){
     int i;
+    time_t now = time(0);
 
 	createPageFrames(pf);
 
@@ -126,10 +133,17 @@ int main(){
         signal(SIGUSR1, pageFaultHandler);
         signal(SIGQUIT, quitHandler);
         signal(SIGINT, quitHandler);
+        signal(SIGCHLD, childHanlder);
+
         
-        for(EVER){
+        while(activeProcesses > 0){
         	sleep(1);
         }
+
+        now = time(0) - now;
+        printf("Time: %lu\nPage Faults: %d\nSwap W: %d\n", now, pageFaults, swapW);
+
+        return 0;
     }
 }
 
@@ -156,9 +170,10 @@ int LFU(){
 void pageFaultHandler(int signal){
     int newFrameIndex, loserProcess;
     Page pg;
-	kill(pidp[pg.proc_number], SIGSTOP);
+
 	pg = getCurrentRequest();
-	
+	kill(pidp[pg.proc_number], SIGSTOP);
+    pageFaults++;
 	qv->first = (qv->first + 1) % 4;    
     newFrameIndex = LFU();
     table[pf[newFrameIndex].page.proc_number][pf[newFrameIndex].page.index].frame.count = -1;
@@ -168,6 +183,9 @@ void pageFaultHandler(int signal){
 	pf[newFrameIndex].page.proc_number = pg.proc_number;
 	pf[newFrameIndex].page.offset = pg.offset;
 	pf[newFrameIndex].page.type = pg.type;
+    if(pf[newFrameIndex].page.type == 'r'){
+        swapW++;
+    }
     table[pg.proc_number][pg.index].frame.count = pf[newFrameIndex].count;
     table[pg.proc_number][pg.index].frame.index = pf[newFrameIndex].index;
     table[pg.proc_number][pg.index].frame.page.index = pf[newFrameIndex].page.index;
@@ -183,6 +201,10 @@ void quitHandler(int sinal){
     exit (0);
 }
 
-
-
-
+void childHanlder(int sinal){
+    int pid_encerrado = waitpid(-1, NULL, WNOHANG);
+    if(pid_encerrado == 0){ // Ainda não acabou
+        return;
+    }
+    activeProcesses--;
+}

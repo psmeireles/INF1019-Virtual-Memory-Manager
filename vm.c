@@ -87,7 +87,7 @@ void trans(int pnumber, int i, unsigned int o, char rw){
 		qv->empty = (qv->empty + 1) % 4;
 		
         kill(getppid(), SIGUSR1);   // Ask MM for Page Frame
-        usleep(1000);                    // Waits until MM sets a Page Frame to current page
+        usleep(10000);                    // Waits until MM sets a Page Frame to current page
         
         printf("P%d, %04x%04x, %c, count %d\n", pnumber + 1, table[pnumber][i].frame.index, o, rw, table[pnumber][i].frame.count); 
     }
