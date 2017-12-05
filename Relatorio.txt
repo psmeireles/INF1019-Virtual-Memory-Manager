@@ -11,7 +11,7 @@ Modo de usar:
    Para encerrar a execução do programa digite o comando ctrl+c.
 
 Funcionamento do programa:
-      Os arquivos vm.c e semaphore.c funcionam simplismente como bibliotecas que serão
+      Os arquivos vm.c e semaphore.c funcionam simplesmente como bibliotecas que serão
    utilizadas pelo manager.
       Assim que a execução do programa começa é inicializado o vetor de page frames que será
    compartilhado pelos 4 processos utilizados pelo programa, e tambem são inicializadas 4
@@ -19,8 +19,24 @@ Funcionamento do programa:
       Cada processo fica em loop lendo linha a linha dos arquivos contendo os endereços de
    memoria virtual acessados por cada processo, e a cada iteração eles fazem uma chamada
    para a função trans do vm.c passando o numero do processo, o indice da pagina, o offset e o tipo de acesso.
-      A função trans então verifica se na page table do processo se essa pagina ja esta relacionada
-   a um page frame. Caso ja esteja, o contador de numeros de acesso ao frame dessa pagina é incrementado.
+      A função trans, então, verifica na page table do processo se essa pagina já esta relacionada
+   a um page frame. Caso esteja, o contador de número de acessos ao frame dessa pagina é incrementado.
    Caso não esteja, é enviado um sinal de volta ao gerenciador de memoria para que ele utilize o
-   algoritmo LFU para decidir em qual page frame essa pagina vai ser adicionada, e então atualize essa
-   informação tanto no vetor de page frames quanto na page table.
+   algoritmo LFU para decidir em qual page frame essa pagina vai ser adicionada. O GM, então, atualiza 
+   essa informação no vetor de page frames, na page table do processo que acabou de ter a página
+   mapeada e na page table do processo cuja página perdeu o page frame.
+	  Para simular a cópia da página da área de swap para a memória física, o processo que causou o
+   page fault espera por 1 segundo para reiniciar sua execução após ter a página mapeada. Se a página
+   que perdeu seu page frame tiver sido modificado, o processo correspondente deverá esperar por 2
+   segundos.
+      O algoritmo LFU (Least Frequent Used) irá selecionar a página que teve menos acessos dentre as
+   páginas mapeadas nos page frames. Se houver um page frame vazio, ele será o escolhido.
+      
+      Sobre os sinais:
+      SIGUSR1: é o sinal mandado pelos user processes ao GM ao gerar um page fault para que o GM possa colocar a pagina requisitada no frame adequado.
+      Seu tratador realiza o processo de troca de paginas do page frame como mencionado a cima.
+      SIGQUIT e SIGINT: Esses sinais são recebidos quando o processo é terminado pelo terminal.
+O tratador libera toda a memória alocada, além de limpar a memória compartilhada e exibir uma mensagem de término.
+	  SIGCHLD: esse sinal é enviado pelo user process ao GM quando o user process acaba. Ao fim de todos os user processes, é exibida uma mensagem com o tempo de duração da execução, o número de page faults e o número de escritas na área de swap.
+	  SIGSTOP e SIGCONT: esses sinais foram usados pelo GM para pausar e continuar, respectivamente, a execução dos user processes. O processo usuário é pausado no início do tratamento de um page fault e é continuado ao fim do mesmo.
+

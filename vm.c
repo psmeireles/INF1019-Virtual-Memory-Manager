@@ -81,11 +81,8 @@ void trans(int pnumber, int i, unsigned int o, char rw){
     if( frameindex >= 0 && count >= 0){
         table[pnumber][i].frame.count++;
         pf[table[pnumber][i].frame.index].count++;
-        if(frameindex == -1){
-            printf("TA TUDO ERRADO\n");
-        }
         
-        printf("P%d, %04x%04x, %c, count %d\n", pnumber + 1, frameindex, o, rw, table[pnumber][i].frame.count-1); 
+        printf("P%d, %04x%04x, %c, count %d\n", pnumber + 1, frameindex, o, rw, table[pnumber][i].frame.count); 
     }
     else{
     
