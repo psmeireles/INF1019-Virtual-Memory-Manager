@@ -152,16 +152,18 @@ int main(){
 int LFU(){
     
     int i;
-    int minCount, minFrame;
+    int minCount, minBit, minFrame;
 
     minCount = pf[0].count;
+    minBit = pf[0].page.bitM;
     minFrame = 0;
     for( i = 1; i<256; i++ ){
         if(minCount == 0){
     		return minFrame;
     	}
-        if(pf[i].count < minCount){
+        if(pf[i].count < minCount || (pf[i].count == minCount && pf[i].page.bitM < minBit)){
             minCount = pf[i].count;
+            minBit = pf[i].page.bitM;
             minFrame = i;
         }
     }
@@ -186,14 +188,15 @@ void pageFaultHandler(int signal){
     table[pf[newFrameIndex].page.proc_number][pf[newFrameIndex].page.index].frame.count = -1;
     table[pf[newFrameIndex].page.proc_number][pf[newFrameIndex].page.index].frame.index = -1;
     //update the page frame to contain the new page
-	pf[newFrameIndex].count = 1;
+	if(pf[newFrameIndex].page.bitM == 1){
+        swapW++;
+    }
+    pf[newFrameIndex].count = 1;
 	pf[newFrameIndex].page.index = pg.index;
 	pf[newFrameIndex].page.proc_number = pg.proc_number;
 	pf[newFrameIndex].page.offset = pg.offset;
 	pf[newFrameIndex].page.type = pg.type;
-    if(pf[newFrameIndex].page.type == 'W'){
-        swapW++;
-    }
+    pf[newFrameIndex].page.bitM = pg.bitM;
     //upadate the page table of the procces that is putting the new page on the frame
     table[pg.proc_number][pg.index].frame.count = pf[newFrameIndex].count;
     table[pg.proc_number][pg.index].frame.index = pf[newFrameIndex].index;
@@ -201,12 +204,15 @@ void pageFaultHandler(int signal){
     table[pg.proc_number][pg.index].frame.page.proc_number = pf[newFrameIndex].page.proc_number;
     table[pg.proc_number][pg.index].frame.page.offset = pf[newFrameIndex].page.offset;
     table[pg.proc_number][pg.index].frame.page.type = pf[newFrameIndex].page.type;
+    table[pg.proc_number][pg.index].frame.page.bitM = pf[newFrameIndex].page.bitM;
     //continue the execution os the process that caused the page fault
     kill(pidp[pg.proc_number], SIGCONT);
 }
 
 void quitHandler(int sinal){
     int i;
+
+    printf("\n");
     for(i = 0; i < 256; i++){
         printf("Frame %d: %d\n", i, pf[i].count);
     }

@@ -81,6 +81,10 @@ void trans(int pnumber, int i, unsigned int o, char rw){
     if( frameindex >= 0 && count >= 0){
         table[pnumber][i].frame.count++;
         pf[table[pnumber][i].frame.index].count++;
+
+        if(rw == 'W'){
+            table[pnumber][i].page.bitM = 1;
+        }
         
         printf("P%d, %04x%04x, %c, count %d\n", pnumber + 1, frameindex, o, rw, table[pnumber][i].frame.count); 
     }
@@ -93,12 +97,18 @@ void trans(int pnumber, int i, unsigned int o, char rw){
     	qv->pages[qv->empty].proc_number = pnumber;
     	qv->pages[qv->empty].offset = o;
     	qv->pages[qv->empty].type = rw;
+        if(rw == 'W'){
+            qv->pages[qv->empty].bitM = 1;
+        }
+        else{
+            qv->pages[qv->empty].bitM = 0;
+        }
     	
     	//update value that determines the next empty place on the vector
 		qv->empty = (qv->empty + 1) % 4;
 		
         kill(getppid(), SIGUSR1);   // Ask MM for Page Frame
-        usleep(10000);                    // Waits until MM sets a Page Frame to current page
+        usleep(100000);                    // Waits until MM sets a Page Frame to current page
         //sleep(1);
         
         printf("P%d, %04x%04x, %c, count %d\n", pnumber + 1, table[pnumber][i].frame.index, o, rw, table[pnumber][i].frame.count); 
@@ -118,5 +128,6 @@ void clearShm(){
 	    shmctl(seg[i], IPC_RMID, 0);
     }
     shmctl(segQueue, IPC_RMID, 0);
+    shmctl(segpf, IPC_RMID, 0);
 }
 
