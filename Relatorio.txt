@@ -1,9 +1,10 @@
-PUC-Rio	- Trabalho de Sistemas de Computação (INF1019)
+
+PUC-Rio  - Trabalho de Sistemas de Computação (INF1019)
 Professor: Markus Endler
 Monitora: Jéssica Almeida
 Alunos:
-Pedro Sousa Meireles	-	1510962
-Julio Neuman Kessel 	-	1511745
+Pedro Sousa Meireles -  1510962
+Julio Neuman Kessel  -  1511745
 
 Modo de usar:
       Abra um terminal e navegue até o diretório onde os arquivos referentes ao 
@@ -25,18 +26,24 @@ Funcionamento do programa:
    algoritmo LFU para decidir em qual page frame essa pagina vai ser adicionada. O GM, então, atualiza 
    essa informação no vetor de page frames, na page table do processo que acabou de ter a página
    mapeada e na page table do processo cuja página perdeu o page frame.
-	  Para simular a cópia da página da área de swap para a memória física, o processo que causou o
+     Para simular a cópia da página da área de swap para a memória física, o processo que causou o
    page fault espera por 1 segundo para reiniciar sua execução após ter a página mapeada. Se a página
    que perdeu seu page frame tiver sido modificado, o processo correspondente deverá esperar por 2
    segundos.
       O algoritmo LFU (Least Frequent Used) irá selecionar a página que teve menos acessos dentre as
    páginas mapeadas nos page frames. Se houver um page frame vazio, ele será o escolhido.
       
-      Sobre os sinais:
+Sobre os sinais:
       SIGUSR1: é o sinal mandado pelos user processes ao GM ao gerar um page fault para que o GM possa colocar a pagina requisitada no frame adequado.
       Seu tratador realiza o processo de troca de paginas do page frame como mencionado a cima.
       SIGQUIT e SIGINT: Esses sinais são recebidos quando o processo é terminado pelo terminal.
 O tratador libera toda a memória alocada, além de limpar a memória compartilhada e exibir uma mensagem de término.
-	  SIGCHLD: esse sinal é enviado pelo user process ao GM quando o user process acaba. Ao fim de todos os user processes, é exibida uma mensagem com o tempo de duração da execução, o número de page faults e o número de escritas na área de swap.
-	  SIGSTOP e SIGCONT: esses sinais foram usados pelo GM para pausar e continuar, respectivamente, a execução dos user processes. O processo usuário é pausado no início do tratamento de um page fault e é continuado ao fim do mesmo.
+     SIGCHLD: esse sinal é enviado pelo user process ao GM quando o user process acaba. Ao fim de todos os user processes, é exibida uma mensagem com o tempo de duração da execução, o número de page faults e o número de escritas na área de swap.
+     SIGSTOP e SIGCONT: esses sinais foram usados pelo GM para pausar e continuar, respectivamente, a execução dos user processes. O processo usuário é pausado no início do tratamento de um page fault e é continuado ao fim do mesmo.
 
+Estruturas de dados:
+      Utilizamos quatro Structs no programa. Elas são:
+      Struct Page, que resepresenta uma pagina. Ela contem o indice da pagina, o numero do processo que requisitou essa pagina e o bit M para saber se o acesso foi de escrita.
+      Struct pageFrame, que contem o indice do Page Frame, o numero de acessos a pagina contida nesse Frame e a pagina que está atualmente contida nele.
+      Struct PageTableElement, que contem uma pagina e um Page Frame. Ela serve para relacionar as paginas aos seus respectivos Frames.
+      Struct QueueVector, que contem um vetor de paginas de tamanho 4, um valor inteiro para representar a proxima posição livre do vetor e outro inteiro para representar o indice da pagina mais antiga colocada no vetor. Essa Struct é usada para guardar a ordenação da requisição de paginas pelos processos, para que o GM possa tratar os Page Faults na ordem correta.
