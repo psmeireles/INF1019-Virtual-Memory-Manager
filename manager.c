@@ -124,12 +124,12 @@ int main(){
         }
     }
     else{   // Memory Manager
+
         signal(SIGUSR1, pageFaultHandler);
         signal(SIGQUIT, quitHandler);
         signal(SIGINT, quitHandler);
         signal(SIGCHLD, childHanlder);
 
-        
         while(activeProcesses > 0){
         	sleep(1);
         }
