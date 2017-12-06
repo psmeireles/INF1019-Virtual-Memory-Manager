@@ -2,7 +2,7 @@
 int setSemValue(int semId);
 // remove o semáforo
 void delSemValue(int semId);
-// operação P
+// operação down
 int down(int semId);
-//operação V
+//operação up
 int up(int semId);

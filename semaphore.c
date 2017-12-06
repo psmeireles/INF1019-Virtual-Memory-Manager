@@ -1,4 +1,3 @@
-	/* Exemplo de uso de semáforo*/
 	#include <sys/sem.h>
 	#include <unistd.h>
 	#include <stdio.h>

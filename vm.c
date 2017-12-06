@@ -85,18 +85,16 @@ void trans(int pnumber, int i, unsigned int o, char rw){
         if(rw == 'W'){
             table[pnumber][i].page.bitM = 1;
         }
-        
         printf("P%d, %04x%04x, %c, count %d\n", pnumber + 1, frameindex, o, rw, table[pnumber][i].frame.count); 
     }
     else{
     
+        int index, count;
     	
     	down(semaphore);
 
     	qv->pages[qv->empty].index = i;
     	qv->pages[qv->empty].proc_number = pnumber;
-    	qv->pages[qv->empty].offset = o;
-    	qv->pages[qv->empty].type = rw;
         if(rw == 'W'){
             qv->pages[qv->empty].bitM = 1;
         }
@@ -108,10 +106,10 @@ void trans(int pnumber, int i, unsigned int o, char rw){
 		qv->empty = (qv->empty + 1) % 4;
 		
         kill(getppid(), SIGUSR1);   // Ask MM for Page Frame
-        usleep(100000);                    // Waits until MM sets a Page Frame to current page
-        //sleep(1);
-        
-        printf("P%d, %04x%04x, %c, count %d\n", pnumber + 1, table[pnumber][i].frame.index, o, rw, table[pnumber][i].frame.count); 
+        sleep(1);                    // Waits until MM sets a Page Frame to current page
+        index = table[pnumber][i].frame.index;
+        count = table[pnumber][i].frame.count;
+        printf("P%d, %04x%04x, %c, count %d\n", pnumber + 1, index, o, rw, count); 
         up(semaphore);
     }
 

@@ -1,9 +1,6 @@
 typedef struct page{
     int index;
-    // The atributes below refer to the current access to the page
     int proc_number;
-    int offset;
-    char type; // 'r' or 'w'
     char bitM; // 1 for modified. Else 0
 } Page;
 
