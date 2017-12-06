@@ -48,12 +48,12 @@ Sobre os sinais:
 Estruturas de dados:
       Utilizamos quatro Structs no programa. Elas são:
             Struct Page, que resepresenta uma pagina. Ela contem o indice da pagina, o numero do processo que requisitou
-      essa pagina e o bit M para saber se o acesso foi de escrita.
+            essa pagina e o bit M para saber se o acesso foi de escrita.
             Struct pageFrame, que contem o indice do Page Frame, o numero de acessos a pagina contida nesse Frame
-      e a pagina que está atualmente contida nele.
+            e a pagina que está atualmente contida nele.
             Struct PageTableElement, que contem uma pagina e um Page Frame. Ela serve para relacionar as paginas
-      aos seus respectivos Frames.
+            aos seus respectivos Frames.
             Struct QueueVector, que contem um vetor de paginas de tamanho 4, um valor inteiro para representar
-      a proxima posição livre do vetor e outro inteiro para representar o indice da pagina mais antiga colocada
-      no vetor. Essa Struct é usada para guardar a ordenação da requisição de paginas pelos processos, para que
-      o GM possa tratar os Page Faults na ordem correta.
+            a proxima posição livre do vetor e outro inteiro para representar o indice da pagina mais antiga colocada
+            no vetor. Essa Struct é usada para guardar a ordenação da requisição de paginas pelos processos, para que
+            o GM possa tratar os Page Faults na ordem correta.
