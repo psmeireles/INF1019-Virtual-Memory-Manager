@@ -1129,7 +1129,8 @@ Análise:
       Pode-se ver que o resultado é como o esperado. Comparando com os arquivos de leitura, nota-se que o offset
       apresentado no mapeamento é o mesmo, mudando-se apenas os 4 primeiros dígitos. Também é possível ver que,
       a princípio, os frames são preenchidos em ordem. Como a execução foi muito curta, não é possível ver o Caso
-      de uma substituição de página. Esse caso pode ser visto no final deste relatório.
+      de uma substituição de página. Esse caso pode ser visto no arquivo log.txt em anexo. Esse arquivo, porém,
+      possui menos linhas que a saída original, uma vez que ultrapassou o limite do buffer do terminal.
       
       É importante realçar que, durante o tratamento de um page fault, outro processo que esteja acessando uma página
       já mapeada continua executando, imprimindo repetidamente na tela os endereços acessados. Quando há mais de um 
