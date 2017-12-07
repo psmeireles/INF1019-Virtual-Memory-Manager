@@ -62,6 +62,9 @@ Execução do programa:
       O programa imprime o processo requisitante, o endereço físico requisitado e o tipo de acesso ao endereço a cada
       leitura de linha nos arquivos dos processos usuários. Abaixo um exemplo de uma execução interrompida após 103 segundos:
 
+$ gcc -o manager manager.c vm.c semaphore.c
+$ ./manager
+
 P1, 0000ff60, W
 P2, 00017c20, R
 P3, 000243a0, R

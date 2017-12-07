@@ -1,8 +1,16 @@
-// inicializa o valor do semáforo
+/*
+PUC-Rio  - Trabalho de Sistemas de Computação (INF1019)
+Professor: Markus Endler
+Monitora: Jéssica Almeida
+Alunos:
+Pedro Sousa Meireles -  1510962
+Julio Neuman Kessel  -  1511745
+*/
+
+// Initialize semaphore value
 int setSemValue(int semId);
-// remove o semáforo
+// Removes semaphore
 void delSemValue(int semId);
-// operação down
+
 int down(int semId);
-//operação up
 int up(int semId);
